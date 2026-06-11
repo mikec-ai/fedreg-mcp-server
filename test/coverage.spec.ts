@@ -41,4 +41,12 @@ describe('param-schema coverage (drift guard)', () => {
     });
     expect(empty).toEqual([]);
   });
+
+  it('renders no unsupported-type token for any registered endpoint', () => {
+    const offenders = registeredIds.filter(id => {
+      const r = describeSchema({ path: id });
+      return (r.found ? (r.entries[0]?.params ?? '') : '').includes('unsupported<');
+    });
+    expect(offenders).toEqual([]);
+  });
 });

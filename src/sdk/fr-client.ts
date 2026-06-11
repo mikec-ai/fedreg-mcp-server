@@ -28,7 +28,7 @@ export const DocumentSearchConditionsSchema = z.object({
   topics: z.array(z.string()).optional(),
   sections: z.array(z.string()).describe('FederalRegister.gov sections, e.g. "money", "environment".').optional(),
   significant: z.union([z.literal(0), z.literal(1)], {
-    errorMap: () => ({ message: 'must be the integer 0 or 1, not a boolean (true silently returns the wrong count)' }),
+    errorMap: () => ({ message: 'must be the integer 0 or 1 (not a boolean — a boolean silently returns the wrong count)' }),
   }).describe('1 = Significant under EO 12866. Use the integer 1, NOT the boolean true (a boolean silently returns the wrong count).').optional(),
   cfr: z.object({
     title: z.union([z.number(), z.string()]).optional(),
