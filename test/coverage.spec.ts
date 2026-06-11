@@ -63,14 +63,14 @@ describe('param-schema coverage (drift guard)', () => {
       if (!example) { failures.push(`${id}: no example`); continue; }
       const code = example.replace(/^await\s+/, '');
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         const ast = parse(code, { ecmaVersion: 'latest' }) as any;
         const call = ast.body[0]?.expression;
         // the params object is always the last object-literal argument of the call
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         const objArg = [...(call?.arguments ?? [])].reverse().find((a: any) => a.type === 'ObjectExpression');
         if (!objArg) { failures.push(`${id}: example has no object-literal argument`); continue; }
-        // eslint-disable-next-line @typescript-eslint/no-implied-eval
+         
         const value = Function(`return (${code.slice(objArg.start, objArg.end)})`)() as unknown;
         if (!PARAM_SCHEMAS[id]!.safeParse(value).success) failures.push(`${id}: example fails its schema`);
       } catch (e) {
