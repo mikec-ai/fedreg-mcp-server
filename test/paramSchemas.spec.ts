@@ -23,6 +23,7 @@ describe('DocumentSearch schemas', () => {
       { type: 'RULE' },
       { sections: ['environment'] },
       { regulation_id_number: '2060-AV16' },
+      { agency_ids: [145] },
     ];
     for (const c of forms) {
       expect(DocumentSearchConditionsSchema.safeParse(c).success).toBe(true);
@@ -49,6 +50,7 @@ describe('PIDocumentSearchParams schema', () => {
   it('accepts the public-inspection conditions and rejects unknown keys', () => {
     expect(PIDocumentSearchParamsSchema.safeParse({ conditions: { agencies: ['federal-aviation-administration'], special_filing: 1 } }).success).toBe(true);
     expect(PIDocumentSearchParamsSchema.safeParse({ conditions: { available_on: '2026-06-11' } }).success).toBe(true);
+    expect(PIDocumentSearchParamsSchema.safeParse({ conditions: { agency_ids: [145] } }).success).toBe(true);
     expect(PIDocumentSearchParamsSchema.safeParse({ conditions: { nope: 1 } }).success).toBe(false);
   });
 });

@@ -21,6 +21,7 @@ const DocType = z.enum(['RULE', 'PRORULE', 'NOTICE', 'PRESDOCU']);
 export const DocumentSearchConditionsSchema = z.object({
   term: z.string().describe('Full-text query. Quote a multi-word value for an exact-phrase match.').optional(),
   agencies: z.array(z.string()).describe('Agency slugs, e.g. "environmental-protection-agency" (see fr.agencies.list).').optional(),
+  agency_ids: z.array(z.union([z.number(), z.string()])).describe('Numeric agency ids (distinct from the `agencies` slug filter).').optional(),
   publication_date: DateFilter.describe('Filter by publication date; string dates are YYYY-MM-DD, year is a number.').optional(),
   effective_date: DateFilter.describe('Filter by effective date (rules).').optional(),
   type: z.union([z.array(DocType), DocType]).describe("Document type(s): 'Rule'=RULE, 'Proposed Rule'=PRORULE, 'Notice'=NOTICE, 'Presidential Document'=PRESDOCU. One value or an array.").optional(),
@@ -60,6 +61,7 @@ export type FacetsParams = z.infer<typeof FacetsParamsSchema>;
 export const PIDocumentSearchConditionsSchema = z.object({
   available_on: z.string().describe('On public inspection as of this date (YYYY-MM-DD).').optional(),
   agencies: z.array(z.string()).describe('Agency slugs.').optional(),
+  agency_ids: z.array(z.union([z.number(), z.string()])).describe('Numeric agency ids (distinct from the `agencies` slug filter).').optional(),
   type: z.array(z.string()).describe('Document type(s) on public inspection.').optional(),
   special_filing: z.union([z.literal(0), z.literal(1)]).describe('1 = special filing.').optional(),
   docket_id: z.string().optional(),
