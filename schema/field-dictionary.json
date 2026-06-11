@@ -114,6 +114,22 @@
       "example": "await ecfr.admin.agencies()"
     },
     {
+      "id": "ecfr.admin.corrections",
+      "kind": "endpoint",
+      "binding": "ecfr",
+      "signature": "ecfr.admin.corrections(query?)",
+      "description": "List eCFR corrections, optionally filtered by date, CFR title, or error-corrected date.",
+      "example": "await ecfr.admin.corrections({ title: 40 })"
+    },
+    {
+      "id": "ecfr.admin.corrections_for_title",
+      "kind": "endpoint",
+      "binding": "ecfr",
+      "signature": "ecfr.admin.corrections_for_title(title, query?)",
+      "description": "List eCFR corrections for a specific CFR title.",
+      "example": "await ecfr.admin.corrections_for_title(40, { date: '2024-01-01' })"
+    },
+    {
       "id": "ecfr.titles.list",
       "kind": "endpoint",
       "binding": "ecfr",
@@ -143,7 +159,7 @@
       "binding": "ecfr",
       "signature": "ecfr.versions(title, query?)",
       "description": "List section-level version history for a CFR title.",
-      "example": "await ecfr.versions(40, { 'issue_date[gte]': '2023-01-01' })"
+      "example": "await ecfr.versions(40, { issue_date: { gte: '2023-01-01' } })"
     },
     {
       "id": "ecfr.full",

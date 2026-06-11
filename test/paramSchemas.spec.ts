@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DocumentSearchParamsSchema, DocumentSearchConditionsSchema, FacetsParamsSchema, PIDocumentSearchParamsSchema } from '../src/sdk/fr-client.js';
-import { EcfrSearchParamsSchema } from '../src/sdk/ecfr-client.js';
+import { EcfrSearchParamsSchema, EcfrVersionsQuerySchema, EcfrCountsParamsSchema, EcfrCorrectionsQuerySchema } from '../src/sdk/ecfr-client.js';
 import { describeSchema } from '../src/tools/describeSchema.js';
 import { searchApi } from '../src/tools/searchApi.js';
 
@@ -62,6 +62,25 @@ describe('EcfrSearchParams schema', () => {
   it('requires query and rejects unknown params (strict)', () => {
     expect(EcfrSearchParamsSchema.safeParse({ hierarchy: { title: '40' } }).success).toBe(false);
     expect(EcfrSearchParamsSchema.safeParse({ query: 'x', not_a_real_param: 1 }).success).toBe(false);
+  });
+});
+
+describe('eCFR auxiliary schemas (Phase 3)', () => {
+  it('versions: nested issue_date parses; flattened-string key and unknown key rejected', () => {
+    expect(EcfrVersionsQuerySchema.safeParse({ issue_date: { gte: '2023-01-01' } }).success).toBe(true);
+    expect(EcfrVersionsQuerySchema.safeParse({ 'issue_date[gte]': '2023-01-01' }).success).toBe(false);
+    expect(EcfrVersionsQuerySchema.safeParse({ nope: 1 }).success).toBe(false);
+  });
+
+  it('counts pick stays strict and keeps query required', () => {
+    expect(EcfrCountsParamsSchema.safeParse({ query: 'x', hierarchy: { title: '40' } }).success).toBe(true);
+    expect(EcfrCountsParamsSchema.safeParse({ query: 'x', per_page: 5 }).success).toBe(false);
+    expect(EcfrCountsParamsSchema.safeParse({ hierarchy: { title: '40' } }).success).toBe(false);
+  });
+
+  it('corrections rejects unknown keys', () => {
+    expect(EcfrCorrectionsQuerySchema.safeParse({ title: 40 }).success).toBe(true);
+    expect(EcfrCorrectionsQuerySchema.safeParse({ titel: 40 }).success).toBe(false);
   });
 });
 
