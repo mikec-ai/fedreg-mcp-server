@@ -2,8 +2,6 @@ import type { ZodTypeAny } from 'zod';
 import { DocumentSearchParamsSchema, FacetsParamsSchema, PIDocumentSearchParamsSchema } from './fr-client.js';
 import {
   EcfrSearchParamsSchema,
-  EcfrCountsParamsSchema,
-  EcfrSuggestionsParamsSchema,
   EcfrVersionsQuerySchema,
   EcfrNodeQuerySchema,
   EcfrCorrectionsQuerySchema,
@@ -23,10 +21,10 @@ export const PARAM_SCHEMAS: Record<string, ZodTypeAny> = {
   'fr.documents.facets': FacetsParamsSchema,
   'fr.publicInspection.search': PIDocumentSearchParamsSchema,
   'ecfr.search.results': EcfrSearchParamsSchema,
-  'ecfr.search.counts_daily': EcfrCountsParamsSchema,
-  'ecfr.search.counts_titles': EcfrCountsParamsSchema,
-  'ecfr.search.counts_hierarchy': EcfrCountsParamsSchema,
-  'ecfr.search.suggestions': EcfrSuggestionsParamsSchema,
+  'ecfr.search.counts_daily': EcfrSearchParamsSchema,
+  'ecfr.search.counts_titles': EcfrSearchParamsSchema,
+  'ecfr.search.counts_hierarchy': EcfrSearchParamsSchema,
+  'ecfr.search.suggestions': EcfrSearchParamsSchema,
   'ecfr.versions': EcfrVersionsQuerySchema,
   'ecfr.ancestry': EcfrNodeQuerySchema,
   'ecfr.full': EcfrNodeQuerySchema,

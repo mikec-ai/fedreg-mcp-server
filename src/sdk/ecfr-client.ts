@@ -33,9 +33,10 @@ export const EcfrSearchParamsSchema = z.object({
 }).strict();
 export type EcfrSearchParams = z.infer<typeof EcfrSearchParamsSchema>;
 
-/** Picks for the count/suggestion endpoints, which accept a subset of the search params. */
-export const EcfrCountsParamsSchema = EcfrSearchParamsSchema.pick({ query: true, agency_slugs: true, hierarchy: true }).strict();
-export const EcfrSuggestionsParamsSchema = EcfrSearchParamsSchema.pick({ query: true }).strict();
+// ecfr.search.results, counts/*, and suggestions all share EcfrSearchParamsSchema:
+// the eCFR search API parses the same param vocabulary across them (query,
+// agency_slugs, date, last_modified_*, hierarchy, pagination — all verified live;
+// unknown params 400), so a narrower pick would reject params the API honors.
 
 /** Query for ecfr.versions; nested issue_date filter (flatten() serializes it to issue_date[...]). */
 export const EcfrVersionsQuerySchema = z.object({
@@ -106,21 +107,21 @@ export class EcfrClient {
       const p = validate(EcfrSearchParamsSchema, params, 'ecfr.search.results');
       return this.http.call({ path: '/search/v1/results', query: flatten(p as unknown as Record<string, unknown>) });
     },
-    counts_daily: (params: Pick<EcfrSearchParams, 'query' | 'agency_slugs' | 'hierarchy'>) => {
-      const p = validate(EcfrCountsParamsSchema, params, 'ecfr.search.counts_daily');
-      return this.http.call({ path: '/search/v1/counts/daily', query: flatten(p as Record<string, unknown>) });
+    counts_daily: (params: EcfrSearchParams) => {
+      const p = validate(EcfrSearchParamsSchema, params, 'ecfr.search.counts_daily');
+      return this.http.call({ path: '/search/v1/counts/daily', query: flatten(p as unknown as Record<string, unknown>) });
     },
-    counts_titles: (params: Pick<EcfrSearchParams, 'query' | 'agency_slugs' | 'hierarchy'>) => {
-      const p = validate(EcfrCountsParamsSchema, params, 'ecfr.search.counts_titles');
-      return this.http.call({ path: '/search/v1/counts/titles', query: flatten(p as Record<string, unknown>) });
+    counts_titles: (params: EcfrSearchParams) => {
+      const p = validate(EcfrSearchParamsSchema, params, 'ecfr.search.counts_titles');
+      return this.http.call({ path: '/search/v1/counts/titles', query: flatten(p as unknown as Record<string, unknown>) });
     },
-    counts_hierarchy: (params: Pick<EcfrSearchParams, 'query' | 'agency_slugs' | 'hierarchy'>) => {
-      const p = validate(EcfrCountsParamsSchema, params, 'ecfr.search.counts_hierarchy');
-      return this.http.call({ path: '/search/v1/counts/hierarchy', query: flatten(p as Record<string, unknown>) });
+    counts_hierarchy: (params: EcfrSearchParams) => {
+      const p = validate(EcfrSearchParamsSchema, params, 'ecfr.search.counts_hierarchy');
+      return this.http.call({ path: '/search/v1/counts/hierarchy', query: flatten(p as unknown as Record<string, unknown>) });
     },
-    suggestions: (params: Pick<EcfrSearchParams, 'query'>) => {
-      const p = validate(EcfrSuggestionsParamsSchema, params, 'ecfr.search.suggestions');
-      return this.http.call({ path: '/search/v1/suggestions', query: flatten(p as Record<string, unknown>) });
+    suggestions: (params: EcfrSearchParams) => {
+      const p = validate(EcfrSearchParamsSchema, params, 'ecfr.search.suggestions');
+      return this.http.call({ path: '/search/v1/suggestions', query: flatten(p as unknown as Record<string, unknown>) });
     },
   };
 }

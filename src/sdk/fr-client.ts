@@ -15,8 +15,10 @@ const DocType = z.enum(['RULE', 'PRORULE', 'NOTICE', 'PRESDOCU']);
  * Conditions for fr.documents.search / fr.documents.facets. `.strict()` over a
  * key set calibrated against the live API: the Federal Register API rejects
  * unknown condition keys with HTTP 400, so strictness converts that remote 400
- * into a local, actionable error rather than relaxing anything. The set includes
- * `sections` and `regulation_id_number`, which the prior interface omitted.
+ * into a local, actionable error rather than relaxing anything. The key set was
+ * calibrated against the FR API's full documented /documents conditions list —
+ * it adds `sections`, `regulation_id_number`, `agency_ids`, `correction`, and
+ * `near` beyond the prior TS interface.
  */
 export const DocumentSearchConditionsSchema = z.object({
   term: z.string().describe('Full-text query. Quote a multi-word value for an exact-phrase match.').optional(),
@@ -36,6 +38,11 @@ export const DocumentSearchConditionsSchema = z.object({
   }).strict().describe('Restrict to a CFR title/part, e.g. { title: 21 }.').optional(),
   docket_id: z.string().describe('Single agency docket id (singular; "docket_ids" is rejected by the API).').optional(),
   regulation_id_number: z.string().optional(),
+  correction: z.union([z.literal(0), z.literal(1)]).describe('1 = limit to correction documents.').optional(),
+  near: z.object({
+    location: z.string().optional(),
+    within: z.union([z.number(), z.string()]).optional(),
+  }).strict().describe('Geographic search near a location, e.g. { location: "20001", within: 25 } (ZIP code, miles).').optional(),
   president: z.string().optional(),
   presidential_document_type: z.array(z.string()).optional(),
 }).strict();
