@@ -3,6 +3,9 @@ import { z } from 'zod';
 /**
  * Minimal Zod -> JSON Schema converter sufficient for our three tool inputs.
  * Not a general implementation; intentionally tight to the surface we use.
+ *
+ * Reads Zod 3 internals via `_def.typeName`; a Zod 4 upgrade restructures these
+ * and would need this (and src/sdk/renderParams.ts) revisited.
  */
 export function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
   const def = (schema as any)._def;

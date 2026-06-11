@@ -39,6 +39,17 @@ describe('search_api tool', () => {
     const { hits } = searchApi({ query: 'search federal register documents by agency', k: 5 });
     expect(hits.some(h => h.id === 'fr.documents.search' || h.id.startsWith('fr.agencies'))).toBe(true);
   });
+
+  // The rendered params text is now indexed; guard against ranking dilution.
+  it('ranks fr.documents.search for a param-specific query', () => {
+    const { hits } = searchApi({ query: 'filter documents by cfr title part significant docket', k: 3 });
+    expect(hits.slice(0, 3).some(h => h.id === 'fr.documents.search')).toBe(true);
+  });
+
+  it('ranks ecfr.search.results for a hierarchy-restricted regulation query', () => {
+    const { hits } = searchApi({ query: 'restrict eCFR regulation text search to a title and part hierarchy', k: 3 });
+    expect(hits.slice(0, 3).some(h => h.id === 'ecfr.search.results')).toBe(true);
+  });
 });
 
 describe('describe_schema tool', () => {

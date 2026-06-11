@@ -12,9 +12,13 @@ import type { ZodType } from 'zod';
 export function validate<T>(schema: ZodType<T>, params: unknown, ctx: string): T {
   const result = schema.safeParse(params);
   if (result.success) return result.data;
-  const issue = result.error.issues[0];
-  const path = issue?.path?.length ? `${ctx}.${issue.path.join('.')}` : ctx;
-  const err = new Error(`${path}: ${issue?.message ?? 'invalid parameters'}`);
+  // Surface up to the first 3 issues on one line, so an input with several
+  // mistakes can be fixed in one round-trip rather than several.
+  const message = result.error.issues.slice(0, 3).map((issue) => {
+    const path = issue.path?.length ? `${ctx}.${issue.path.join('.')}` : ctx;
+    return `${path}: ${issue.message}`;
+  }).join('; ');
+  const err = new Error(message || `${ctx}: invalid parameters`);
   err.name = 'ValidationError';
   throw err;
 }
