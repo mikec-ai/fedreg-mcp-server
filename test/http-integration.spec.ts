@@ -186,6 +186,34 @@ describe('Streamable HTTP transport', () => {
       expect(['SandboxUnavailable']).toContain(execResult.error?.name);
     }
   });
+
+  it('describe_schema and search_api carry the rendered params contract over HTTP', async () => {
+    const init = await rpc({
+      jsonrpc: '2.0', id: 20, method: 'initialize',
+      params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'it', version: '0' } },
+    });
+    expect(init.sessionId).toBeDefined();
+    await rpc({ jsonrpc: '2.0', method: 'notifications/initialized' }, {}, init.sessionId);
+
+    const desc = await rpc({
+      jsonrpc: '2.0', id: 21, method: 'tools/call',
+      params: { name: 'describe_schema', arguments: { path: 'fr.documents.search' } },
+    }, {}, init.sessionId);
+    expect(desc.status).toBe(200);
+    const db = desc.body as { result?: { content?: Array<{ text: string }> } };
+    const described = JSON.parse(db?.result?.content?.[0]?.text ?? '') as { found: boolean; entries: Array<{ params?: string }> };
+    expect(described.found).toBe(true);
+    expect(described.entries[0]?.params ?? '').toContain('significant?: 0 | 1');
+
+    const search = await rpc({
+      jsonrpc: '2.0', id: 22, method: 'tools/call',
+      params: { name: 'search_api', arguments: { query: 'filter documents by cfr title and significance', k: 3 } },
+    }, {}, init.sessionId);
+    expect(search.status).toBe(200);
+    const sb = search.body as { result?: { content?: Array<{ text: string }> } };
+    const found = JSON.parse(sb?.result?.content?.[0]?.text ?? '') as { hits: Array<{ id: string; params?: string }> };
+    expect(found.hits.some(h => (h.params ?? '').length > 0)).toBe(true);
+  });
 });
 
 describe('Auth enforcement', () => {
