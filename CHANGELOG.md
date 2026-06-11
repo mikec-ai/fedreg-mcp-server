@@ -13,14 +13,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   reverse-engineer the shape of `conditions` / `params` from a single example.
 
 ### Changed
-- **SDK param validation** — `fr.documents.search`, `fr.documents.facets`, and
-  `ecfr.search.results` now validate their params against a schema before the
-  HTTP call and throw a one-line `ValidationError` on bad input. Behavior-
-  affecting: `conditions.significant: true` (use the integer `1`) and unknown or
-  misspelled keys now error locally instead of being sent upstream. `type`
-  accepts a scalar or an array; `cfr.title` accepts a number or string; the
-  `conditions` key set adds the API-supported `sections` and
-  `regulation_id_number`.
+- **SDK param validation** — all Federal Register and eCFR SDK request-param
+  methods now validate against a `.strict()` Zod schema before the HTTP call and
+  throw a one-line `ValidationError` on unknown/misspelled keys or wrong types.
+  This covers `fr.documents.search`, `fr.documents.facets`,
+  `fr.publicInspection.search`, `ecfr.search.results`, `ecfr.search.counts_daily`
+  / `counts_titles` / `counts_hierarchy` / `suggestions`, `ecfr.versions`,
+  `ecfr.ancestry`, `ecfr.full`, `ecfr.admin.corrections`, and
+  `ecfr.admin.corrections_for_title`.
+  - `conditions.significant` must be the integer `0`/`1`; the boolean `true`
+    previously reached the API and silently returned the wrong count, and now
+    throws.
+  - `type` accepts a scalar or an array; `cfr.title` accepts a number or string;
+    the `conditions` allow-list adds the API-supported `sections`,
+    `regulation_id_number`, and `agency_ids` keys.
+  - `ecfr.versions`: the `issue_date` filter uses the nested form
+    `{ issue_date: { gte: '2023-01-01' } }`; the previously-documented flattened
+    key form `{ 'issue_date[gte]': '2023-01-01' }` is now rejected (the typed SDK
+    signature was already nested, so this only affects callers copying the old
+    JSON example). The field-dictionary example was updated to match.
+
+  **Migration / SemVer:** these are behavior changes to the stable `fr.*` / `ecfr.*`
+  globals — inputs that previously produced an HTTP request can now throw locally.
+  In practice the rejected inputs were already broken (a boolean `significant`
+  returned wrong data; unknown keys already drew an upstream HTTP 400), but per the
+  project's stability policy the maintainers should decide whether the next release
+  is a minor or major bump and keep this note as the migration guidance.
 
 ## [1.0.0] - 2026-05-20
 
