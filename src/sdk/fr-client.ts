@@ -1,31 +1,57 @@
+import { z } from 'zod';
 import { HttpClient } from '../util/httpClient.js';
 
-export interface DocumentSearchConditions {
-  term?: string;
-  agencies?: string[];
-  publication_date?: { is?: string; gte?: string; lte?: string; year?: number };
-  effective_date?: { is?: string; gte?: string; lte?: string; year?: number };
-  type?: Array<'RULE' | 'PRORULE' | 'NOTICE' | 'PRESDOCU'>;
-  topics?: string[];
-  significant?: 0 | 1;
-  cfr?: { title?: number; part?: number };
-  docket_id?: string;
-  president?: string;
-  presidential_document_type?: string[];
-}
+const DateFilter = z.object({
+  is: z.string().optional(),
+  gte: z.string().optional(),
+  lte: z.string().optional(),
+  year: z.number().optional(),
+}).strict();
 
-export interface DocumentSearchParams {
-  conditions?: DocumentSearchConditions;
-  fields?: string[];
-  per_page?: number;        // max 1000
-  page?: number;            // pagination is capped at first 2000 results
-  order?: 'relevance' | 'newest' | 'oldest' | 'executive_order_number';
-}
+const DocType = z.enum(['RULE', 'PRORULE', 'NOTICE', 'PRESDOCU']);
 
-export interface FacetsParams {
-  conditions?: DocumentSearchConditions;
-  facet: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'agency' | 'topic' | 'section' | 'subject' | 'type';
-}
+/**
+ * Conditions for fr.documents.search / fr.documents.facets. `.strict()` over a
+ * key set calibrated against the live API: the Federal Register API rejects
+ * unknown condition keys with HTTP 400, so strictness converts that remote 400
+ * into a local, actionable error rather than relaxing anything. The set includes
+ * `sections` and `regulation_id_number`, which the prior interface omitted.
+ */
+export const DocumentSearchConditionsSchema = z.object({
+  term: z.string().describe('Full-text query. Quote a multi-word value for an exact-phrase match.').optional(),
+  agencies: z.array(z.string()).describe('Agency slugs, e.g. "environmental-protection-agency" (see fr.agencies.list).').optional(),
+  publication_date: DateFilter.describe('Filter by publication date; string dates are YYYY-MM-DD, year is a number.').optional(),
+  effective_date: DateFilter.describe('Filter by effective date (rules).').optional(),
+  type: z.union([z.array(DocType), DocType]).describe("Document type(s): 'Rule'=RULE, 'Proposed Rule'=PRORULE, 'Notice'=NOTICE, 'Presidential Document'=PRESDOCU. One value or an array.").optional(),
+  topics: z.array(z.string()).optional(),
+  sections: z.array(z.string()).describe('FederalRegister.gov sections, e.g. "money", "environment".').optional(),
+  significant: z.union([z.literal(0), z.literal(1)]).describe('1 = Significant under EO 12866. Use the integer 1, NOT the boolean true (a boolean silently returns the wrong count).').optional(),
+  cfr: z.object({
+    title: z.union([z.number(), z.string()]).optional(),
+    part: z.union([z.number(), z.string()]).optional(),
+  }).strict().describe('Restrict to a CFR title/part, e.g. { title: 21 }.').optional(),
+  docket_id: z.string().describe('Single agency docket id (singular; "docket_ids" is rejected by the API).').optional(),
+  regulation_id_number: z.string().optional(),
+  president: z.string().optional(),
+  presidential_document_type: z.array(z.string()).optional(),
+}).strict();
+export type DocumentSearchConditions = z.infer<typeof DocumentSearchConditionsSchema>;
+
+export const DocumentSearchParamsSchema = z.object({
+  conditions: DocumentSearchConditionsSchema.optional(),
+  fields: z.array(z.string()).describe('Response fields to return (see fr.document.* fields).').optional(),
+  per_page: z.number().describe('Results per page (max 1000).').optional(),
+  page: z.number().describe('Page number (pagination is capped at the first 2000 results).').optional(),
+  order: z.enum(['relevance', 'newest', 'oldest', 'executive_order_number']).optional(),
+}).strict();
+export type DocumentSearchParams = z.infer<typeof DocumentSearchParamsSchema>;
+
+export const FacetsParamsSchema = z.object({
+  conditions: DocumentSearchConditionsSchema.optional(),
+  facet: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'agency', 'topic', 'section', 'subject', 'type'])
+    .describe('Aggregation bucket. Interpolated into the request path, so it must be one of these values.'),
+}).strict();
+export type FacetsParams = z.infer<typeof FacetsParamsSchema>;
 
 export interface PIDocumentSearchParams {
   conditions?: {

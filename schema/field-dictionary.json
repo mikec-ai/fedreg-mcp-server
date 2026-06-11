@@ -158,7 +158,7 @@
       "kind": "endpoint",
       "binding": "ecfr",
       "signature": "ecfr.search.results(params)",
-      "description": "Full-text search across the eCFR (Electronic Code of Federal Regulations). Search the consolidated CFR regulations text by query string. Filter by agency, date, hierarchy (title/chapter/part/section).",
+      "description": "Full-text search across the eCFR (Electronic Code of Federal Regulations). Search the consolidated CFR regulations text by query string. Filter by agency, date, hierarchy (title/chapter/part/section). Quote a multi-word query for an exact-phrase match (changes the result count).",
       "example": "await ecfr.search.results({ query: 'greenhouse gas', agency_slugs: ['environmental-protection-agency'], per_page: 20 })"
     },
     {

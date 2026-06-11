@@ -1,27 +1,36 @@
+import { z } from 'zod';
 import { HttpClient } from '../util/httpClient.js';
 
-export interface EcfrSearchParams {
-  query: string;
-  agency_slugs?: string[];
-  date?: string;            // YYYY-MM-DD
-  last_modified_after?: string;
-  last_modified_before?: string;
-  last_modified_on_or_after?: string;
-  last_modified_on_or_before?: string;
-  hierarchy?: {
-    title?: string;
-    subtitle?: string;
-    chapter?: string;
-    subchapter?: string;
-    part?: string;
-    subpart?: string;
-    section?: string;
-    appendix?: string;
-  };
-  per_page?: number;        // default 20, max 1000
-  page?: number;
-  order?: 'relevance' | 'hierarchy' | 'newest' | 'oldest';
-}
+const EcfrHierarchy = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  chapter: z.string().optional(),
+  subchapter: z.string().optional(),
+  part: z.string().optional(),
+  subpart: z.string().optional(),
+  section: z.string().optional(),
+  appendix: z.string().optional(),
+}).strict();
+
+/**
+ * Params for ecfr.search.*. `.strict()` over the documented param set: the eCFR
+ * search API also rejects unknown params with HTTP 400, so strictness yields a
+ * local error instead. `hierarchy` values are STRINGS.
+ */
+export const EcfrSearchParamsSchema = z.object({
+  query: z.string().describe('Search query. Quote a multi-word value for an exact-phrase match (changes the result count).'),
+  agency_slugs: z.array(z.string()).optional(),
+  date: z.string().describe('Point-in-time date (YYYY-MM-DD).').optional(),
+  last_modified_after: z.string().optional(),
+  last_modified_before: z.string().optional(),
+  last_modified_on_or_after: z.string().optional(),
+  last_modified_on_or_before: z.string().optional(),
+  hierarchy: EcfrHierarchy.describe('Restrict the search to a CFR location; values are STRINGS, e.g. { title: "40", part: "60" }.').optional(),
+  per_page: z.number().describe('Results per page (default 20, max 1000).').optional(),
+  page: z.number().optional(),
+  order: z.enum(['relevance', 'hierarchy', 'newest', 'oldest']).optional(),
+}).strict();
+export type EcfrSearchParams = z.infer<typeof EcfrSearchParamsSchema>;
 
 export class EcfrClient {
   constructor(private readonly http: HttpClient) {}
