@@ -41,8 +41,14 @@ function renderType(node: ZodTypeAny, indent: number): string {
     case 'ZodBoolean': return 'boolean';
     case 'ZodLiteral': return JSON.stringify(def.value);
     case 'ZodEnum': return (def.values as string[]).map((v) => `'${v}'`).join(' | ');
-    case 'ZodArray': return `${renderType(unwrap(def.type).inner, indent)}[]`;
-    case 'ZodUnion': return (def.options as ZodTypeAny[]).map((o) => renderType(unwrap(o).inner, indent)).join(' | ');
+    case 'ZodArray': {
+      const inner = renderType(unwrap(def.type).inner, indent);
+      return inner.includes(' | ') ? `(${inner})[]` : `${inner}[]`;
+    }
+    case 'ZodUnion': {
+      const parts = (def.options as ZodTypeAny[]).map((o) => renderType(unwrap(o).inner, indent));
+      return [...new Set(parts)].join(' | ');
+    }
     case 'ZodRecord': return `Record<string, ${renderType(unwrap(def.valueType).inner, indent)}>`;
     case 'ZodObject': {
       const shape = def.shape() as Record<string, ZodTypeAny>;

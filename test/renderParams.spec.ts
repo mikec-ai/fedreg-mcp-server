@@ -35,4 +35,11 @@ describe('renderParams', () => {
     expect(out).toContain('title?: number | string');
     expect(out).toContain('Record<string, string>');
   });
+
+  it('parenthesizes an array whose element is a union (array-of-enum)', () => {
+    const out = renderParams(z.object({
+      type: z.union([z.array(z.enum(['RULE', 'PRORULE'])), z.enum(['RULE', 'PRORULE'])]).optional(),
+    }));
+    expect(out).toContain("('RULE' | 'PRORULE')[]");
+  });
 });
