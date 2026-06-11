@@ -1,5 +1,5 @@
 import type { ZodTypeAny } from 'zod';
-import { DocumentSearchParamsSchema, FacetsParamsSchema } from './fr-client.js';
+import { DocumentSearchParamsSchema, FacetsParamsSchema, PIDocumentSearchParamsSchema } from './fr-client.js';
 import { EcfrSearchParamsSchema } from './ecfr-client.js';
 
 /**
@@ -13,5 +13,6 @@ import { EcfrSearchParamsSchema } from './ecfr-client.js';
 export const PARAM_SCHEMAS: Record<string, ZodTypeAny> = {
   'fr.documents.search': DocumentSearchParamsSchema,
   'fr.documents.facets': FacetsParamsSchema,
+  'fr.publicInspection.search': PIDocumentSearchParamsSchema,
   'ecfr.search.results': EcfrSearchParamsSchema,
 };

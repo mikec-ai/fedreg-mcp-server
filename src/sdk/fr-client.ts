@@ -56,18 +56,22 @@ export const FacetsParamsSchema = z.object({
 }).strict();
 export type FacetsParams = z.infer<typeof FacetsParamsSchema>;
 
-export interface PIDocumentSearchParams {
-  conditions?: {
-    available_on?: string;
-    agencies?: string[];
-    type?: string[];
-    special_filing?: 0 | 1;
-    docket_id?: string;
-  };
-  fields?: string[];
-  per_page?: number;
-  page?: number;
-}
+/** Conditions for fr.publicInspection.search — a DIFFERENT shape from documents.search. */
+export const PIDocumentSearchConditionsSchema = z.object({
+  available_on: z.string().describe('On public inspection as of this date (YYYY-MM-DD).').optional(),
+  agencies: z.array(z.string()).describe('Agency slugs.').optional(),
+  type: z.array(z.string()).describe('Document type(s) on public inspection.').optional(),
+  special_filing: z.union([z.literal(0), z.literal(1)]).describe('1 = special filing.').optional(),
+  docket_id: z.string().optional(),
+}).strict();
+
+export const PIDocumentSearchParamsSchema = z.object({
+  conditions: PIDocumentSearchConditionsSchema.optional(),
+  fields: z.array(z.string()).optional(),
+  per_page: z.number().optional(),
+  page: z.number().optional(),
+}).strict();
+export type PIDocumentSearchParams = z.infer<typeof PIDocumentSearchParamsSchema>;
 
 export class FederalRegisterClient {
   constructor(private readonly http: HttpClient) {}
@@ -106,8 +110,10 @@ export class FederalRegisterClient {
         query: fields ? { 'fields[]': fields } : undefined,
       }),
 
-    search: (params: PIDocumentSearchParams = {}) =>
-      this.http.call({ path: '/public-inspection-documents.json', query: flattenConditions(params as Record<string, unknown>) }),
+    search: (params: PIDocumentSearchParams = {}) => {
+      const p = validate(PIDocumentSearchParamsSchema, params, 'fr.publicInspection.search');
+      return this.http.call({ path: '/public-inspection-documents.json', query: flattenConditions(p as Record<string, unknown>) });
+    },
 
     get: (documentNumber: string, fields?: string[]) =>
       this.http.call({

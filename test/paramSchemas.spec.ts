@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DocumentSearchParamsSchema, DocumentSearchConditionsSchema, FacetsParamsSchema } from '../src/sdk/fr-client.js';
+import { DocumentSearchParamsSchema, DocumentSearchConditionsSchema, FacetsParamsSchema, PIDocumentSearchParamsSchema } from '../src/sdk/fr-client.js';
 import { EcfrSearchParamsSchema } from '../src/sdk/ecfr-client.js';
 import { describeSchema } from '../src/tools/describeSchema.js';
 import { searchApi } from '../src/tools/searchApi.js';
@@ -42,6 +42,14 @@ describe('FacetsParams schema', () => {
   it('parses the documented example and rejects an invalid facet', () => {
     expect(FacetsParamsSchema.safeParse({ facet: 'monthly', conditions: { agencies: ['nuclear-regulatory-commission'] } }).success).toBe(true);
     expect(FacetsParamsSchema.safeParse({ facet: 'hourly' }).success).toBe(false);
+  });
+});
+
+describe('PIDocumentSearchParams schema', () => {
+  it('accepts the public-inspection conditions and rejects unknown keys', () => {
+    expect(PIDocumentSearchParamsSchema.safeParse({ conditions: { agencies: ['federal-aviation-administration'], special_filing: 1 } }).success).toBe(true);
+    expect(PIDocumentSearchParamsSchema.safeParse({ conditions: { available_on: '2026-06-11' } }).success).toBe(true);
+    expect(PIDocumentSearchParamsSchema.safeParse({ conditions: { nope: 1 } }).success).toBe(false);
   });
 });
 
