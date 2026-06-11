@@ -2,6 +2,8 @@ import { Bm25Index } from './bm25.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { renderParams } from '../sdk/renderParams.js';
+import { PARAM_SCHEMAS } from '../sdk/paramSchemas.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -12,6 +14,7 @@ export interface CorpusEntry {
   description: string;
   example?: string;
   signature?: string;
+  params?: string;     // rendered request-param contract, generated from PARAM_SCHEMAS
 }
 
 export interface FieldDictionary {
@@ -28,10 +31,12 @@ export function getCorpus(): { index: Bm25Index; entries: Map<string, CorpusEntr
   const index = new Bm25Index();
   const entries = new Map<string, CorpusEntry>();
   for (const e of [...raw.endpoints, ...raw.fields]) {
+    const schema = PARAM_SCHEMAS[e.id];
+    if (schema) e.params = renderParams(schema);
     entries.set(e.id, e);
     index.add({
       id: e.id,
-      text: [e.id, e.description, e.signature ?? '', e.example ?? ''].join(' '),
+      text: [e.id, e.description, e.signature ?? '', e.example ?? '', e.params ?? ''].join(' '),
     });
   }
   cached = { index, entries };

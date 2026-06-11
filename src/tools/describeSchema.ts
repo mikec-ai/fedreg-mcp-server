@@ -21,6 +21,7 @@ export type DescribeSchemaResult =
         description: string;
         signature?: string;
         example?: string;
+        params?: string;
       }>;
     };
 
@@ -41,6 +42,7 @@ export function describeSchema(input: DescribeSchemaInputT): DescribeSchemaResul
       description: e.description,
       signature: e.signature,
       example: e.example,
+      params: e.params,
     })),
   };
 }

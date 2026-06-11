@@ -15,6 +15,7 @@ export interface SearchHit {
   description: string;
   signature?: string;
   example?: string;
+  params?: string;
   score: number;
 }
 
@@ -30,6 +31,7 @@ export function searchApi(input: SearchApiInputT): { hits: SearchHit[]; note: st
       description: e.description,
       signature: e.signature,
       example: e.example,
+      params: e.params,
       score: Math.round(s.score * 1000) / 1000,
     };
   });
