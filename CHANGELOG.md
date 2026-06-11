@@ -7,13 +7,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
-- **Request-param contracts in `describe_schema` and `search_api`** — endpoints
+- **Request-param contracts in `describe_schema` and `search_api`**: endpoints
   with object params now surface a rendered contract (field names, types, enums,
   nesting, and notes) derived from Zod schemas, so agents no longer have to
   reverse-engineer the shape of `conditions` / `params` from a single example.
 
 ### Changed
-- **SDK param validation** — all Federal Register and eCFR SDK request-param
+- **SDK param validation**: all Federal Register and eCFR SDK request-param
   methods now validate against a `.strict()` Zod schema before the HTTP call and
   throw a one-line `ValidationError` on unknown/misspelled keys or wrong types.
   This covers `fr.documents.search`, `fr.documents.facets`,
@@ -33,12 +33,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     signature was already nested, so this only affects callers copying the old
     JSON example). The field-dictionary example was updated to match.
 
-  **Migration / SemVer:** these are behavior changes to the stable `fr.*` / `ecfr.*`
-  globals — inputs that previously produced an HTTP request can now throw locally.
+  **Migration:** these are behavior changes to the stable `fr.*` / `ecfr.*`
+  globals: inputs that previously produced an HTTP request can now throw locally.
   In practice the rejected inputs were already broken (a boolean `significant`
-  returned wrong data; unknown keys already drew an upstream HTTP 400), but per the
-  project's stability policy the maintainers should decide whether the next release
-  is a minor or major bump and keep this note as the migration guidance.
+  returned wrong data; unknown keys already drew an upstream HTTP 400). To adapt,
+  use the integer `0`/`1` for `significant` and `correction`, remove or fix any
+  condition key named by a `ValidationError`, and pass the `ecfr.versions`
+  `issue_date` filter in its nested form.
 
 ## [1.0.0] - 2026-05-20
 
