@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { HttpClient } from '../util/httpClient.js';
+import { validate } from './validate.js';
 
 const EcfrHierarchy = z.object({
   title: z.string().optional(),
@@ -61,8 +62,10 @@ export class EcfrClient {
     this.http.call<string>({ path: `/versioner/v1/full/${date}/title-${title}.xml`, query, accept: 'xml' });
 
   search = {
-    results: (params: EcfrSearchParams) =>
-      this.http.call({ path: '/search/v1/results', query: flatten(params as unknown as Record<string, unknown>) }),
+    results: (params: EcfrSearchParams) => {
+      const p = validate(EcfrSearchParamsSchema, params, 'ecfr.search.results');
+      return this.http.call({ path: '/search/v1/results', query: flatten(p as unknown as Record<string, unknown>) });
+    },
     counts_daily: (params: Pick<EcfrSearchParams, 'query' | 'agency_slugs' | 'hierarchy'>) =>
       this.http.call({ path: '/search/v1/counts/daily', query: flatten(params) }),
     counts_titles: (params: Pick<EcfrSearchParams, 'query' | 'agency_slugs' | 'hierarchy'>) =>

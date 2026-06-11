@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { HttpClient } from '../util/httpClient.js';
+import { validate } from './validate.js';
 
 const DateFilter = z.object({
   is: z.string().optional(),
@@ -25,7 +26,9 @@ export const DocumentSearchConditionsSchema = z.object({
   type: z.union([z.array(DocType), DocType]).describe("Document type(s): 'Rule'=RULE, 'Proposed Rule'=PRORULE, 'Notice'=NOTICE, 'Presidential Document'=PRESDOCU. One value or an array.").optional(),
   topics: z.array(z.string()).optional(),
   sections: z.array(z.string()).describe('FederalRegister.gov sections, e.g. "money", "environment".').optional(),
-  significant: z.union([z.literal(0), z.literal(1)]).describe('1 = Significant under EO 12866. Use the integer 1, NOT the boolean true (a boolean silently returns the wrong count).').optional(),
+  significant: z.union([z.literal(0), z.literal(1)], {
+    errorMap: () => ({ message: 'must be the integer 0 or 1, not a boolean (true silently returns the wrong count)' }),
+  }).describe('1 = Significant under EO 12866. Use the integer 1, NOT the boolean true (a boolean silently returns the wrong count).').optional(),
   cfr: z.object({
     title: z.union([z.number(), z.string()]).optional(),
     part: z.union([z.number(), z.string()]).optional(),
@@ -70,8 +73,10 @@ export class FederalRegisterClient {
   constructor(private readonly http: HttpClient) {}
 
   documents = {
-    search: (params: DocumentSearchParams = {}) =>
-      this.http.call({ path: '/documents.json', query: flattenConditions(params as Record<string, unknown>) }),
+    search: (params: DocumentSearchParams = {}) => {
+      const p = validate(DocumentSearchParamsSchema, params, 'fr.documents.search');
+      return this.http.call({ path: '/documents.json', query: flattenConditions(p as Record<string, unknown>) });
+    },
 
     get: (documentNumber: string, fields?: string[]) =>
       this.http.call({
@@ -85,11 +90,13 @@ export class FederalRegisterClient {
         query: fields ? { 'fields[]': fields } : undefined,
       }),
 
-    facets: (params: FacetsParams) =>
-      this.http.call({
-        path: `/documents/facets/${params.facet}`,
-        query: flattenConditions({ conditions: params.conditions } as Record<string, unknown>),
-      }),
+    facets: (params: FacetsParams) => {
+      const p = validate(FacetsParamsSchema, params, 'fr.documents.facets');
+      return this.http.call({
+        path: `/documents/facets/${encodeURIComponent(p.facet)}`,
+        query: flattenConditions({ conditions: p.conditions } as Record<string, unknown>),
+      });
+    },
   };
 
   publicInspection = {

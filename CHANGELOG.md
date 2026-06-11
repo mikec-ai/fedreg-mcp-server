@@ -6,6 +6,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Request-param contracts in `describe_schema` and `search_api`** — endpoints
+  with object params now surface a rendered contract (field names, types, enums,
+  nesting, and notes) derived from Zod schemas, so agents no longer have to
+  reverse-engineer the shape of `conditions` / `params` from a single example.
+
+### Changed
+- **SDK param validation** — `fr.documents.search`, `fr.documents.facets`, and
+  `ecfr.search.results` now validate their params against a schema before the
+  HTTP call and throw a one-line `ValidationError` on bad input. Behavior-
+  affecting: `conditions.significant: true` (use the integer `1`) and unknown or
+  misspelled keys now error locally instead of being sent upstream. `type`
+  accepts a scalar or an array; `cfr.title` accepts a number or string; the
+  `conditions` key set adds the API-supported `sections` and
+  `regulation_id_number`.
+
 ## [1.0.0] - 2026-05-20
 
 Initial public release.

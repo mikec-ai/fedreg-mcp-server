@@ -68,6 +68,21 @@ describe('FederalRegisterClient', () => {
     const out = await sdk().fr.agencies.list() as Array<{ slug: string }>;
     expect(out[0]?.slug).toBe('epa');
   });
+
+  it('validates params before any HTTP call: rejects the significant boolean footgun', () => {
+    expect(() => sdk().fr.documents.search({ conditions: { significant: true } } as never))
+      .toThrow(/fr\.documents\.search\.conditions\.significant/);
+  });
+
+  it('rejects an unknown (misspelled) condition key under strict', () => {
+    expect(() => sdk().fr.documents.search({ conditions: { significnt: 1 } } as never))
+      .toThrow(/fr\.documents\.search/);
+  });
+
+  it('rejects an invalid facet bucket', () => {
+    expect(() => sdk().fr.documents.facets({ facet: 'hourly' } as never))
+      .toThrow(/fr\.documents\.facets\.facet/);
+  });
 });
 
 describe('EcfrClient', () => {
@@ -110,5 +125,11 @@ describe('EcfrClient', () => {
     const out = await sdk().ecfr.full('2024-01-01', 40);
     expect(typeof out).toBe('string');
     expect(out).toContain('<TITLE');
+  });
+
+  it('validates search.results params: rejects unknown param and missing query', () => {
+    expect(() => sdk().ecfr.search.results({ query: 'x', not_a_real_param: 1 } as never))
+      .toThrow(/ecfr\.search\.results/);
+    expect(() => sdk().ecfr.search.results({} as never)).toThrow(/query/);
   });
 });
